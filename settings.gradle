@@ -1,1 +1,1 @@
-include ':app', ':bluetooth', ':server'
+include ':app', ':bluetooth', ':server', ':bleclient'

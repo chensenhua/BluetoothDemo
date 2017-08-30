@@ -3,6 +3,7 @@ package com.sen.bluetooth.ui.adapters;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,7 +15,7 @@ import android.widget.TextView;
 import com.sen.bluetooth.R;
 import com.sen.bluetooth.javabeans.FoundDevice;
 import com.sen.bluetooth.listeners.OnDevicesItemClickListener;
-import com.sen.bluetooth.utils.Dbug;
+import com.sen.bluetooth.utils.BluetoothUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +36,12 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public boolean add(FoundDevice foundDevice) {
-        if (foundDevice == null || bluetoothDevices.contains(foundDevice)) {
-            return false;
+        for (FoundDevice f : bluetoothDevices) {
+            if (f.getBluetoothDevice().getAddress().equals(foundDevice.getBluetoothDevice().getAddress())) {
+                return false;
+            }
         }
         bluetoothDevices.add(bluetoothDevices.size(), foundDevice);
-        for (FoundDevice f : bluetoothDevices) {
-            Dbug.i(tag, f.getBluetoothDevice().getName());
-        }
         notifyItemInserted(bluetoothDevices.size());
         return true;
     }
@@ -65,10 +65,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         DeviceViewHolder viewholder = (DeviceViewHolder) holder;
-         BluetoothDevice bluetoothDevice = bluetoothDevices.get(position).getBluetoothDevice();
+        BluetoothDevice bluetoothDevice = bluetoothDevices.get(position).getBluetoothDevice();
         String name = bluetoothDevice.getName();
         if (!TextUtils.isEmpty(name)) {
-            viewholder.nameTv.setText(name);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                viewholder.nameTv.setText(name + "        " + BluetoothUtil.getType(bluetoothDevice));
+            } else {
+                viewholder.nameTv.setText(name);
+            }
         }
         viewholder.stateTv.setText(getBondState(bluetoothDevice.getBondState()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {

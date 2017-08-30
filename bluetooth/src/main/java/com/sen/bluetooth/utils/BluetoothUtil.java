@@ -6,6 +6,8 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.widget.Toast;
 
 import java.lang.reflect.InvocationTargetException;
@@ -354,4 +356,35 @@ public class BluetoothUtil {
                 break;
         }
     }
+
+    /**
+     * 获取蓝牙的类型：经典蓝牙还是低功耗蓝牙
+     * @param bluetoothDevice
+     * @return
+     */
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    public static String getType(BluetoothDevice bluetoothDevice) {
+        String type = "未识别";
+
+        switch (bluetoothDevice.getType()) {
+            case BluetoothDevice.DEVICE_TYPE_CLASSIC:
+                type = "蓝牙2.0";
+                break;
+            case BluetoothDevice.TRANSPORT_LE:
+                type = "ble蓝牙";
+                break;
+            case BluetoothDevice.DEVICE_TYPE_DUAL:
+                type = "蓝牙2.0和ble蓝牙";
+                break;
+        }
+        return type;
+    }
+
+    public static  int getProfileConnnectionState(int profile)
+    {
+        return BluetoothAdapter.getDefaultAdapter().getProfileConnectionState(profile);
+    }
+
+
 }

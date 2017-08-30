@@ -34,7 +34,6 @@ public class BluetoothClient extends BaseBluetoothManager {
         return mInstance;
     }
 
-
     @Override
     public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
         mClientSocket.registerDataReceiverListener(onDataReceiverListener);

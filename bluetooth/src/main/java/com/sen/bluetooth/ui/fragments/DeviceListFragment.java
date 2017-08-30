@@ -1,6 +1,8 @@
 package com.sen.bluetooth.ui.fragments;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,8 +15,10 @@ import android.widget.ImageButton;
 
 import com.sen.bluetooth.BaseBluetoothManager;
 import com.sen.bluetooth.R;
+import com.sen.bluetooth.ble.BluetoothBleClient;
 import com.sen.bluetooth.javabeans.FoundDevice;
 import com.sen.bluetooth.listeners.OnBondStateChangeListener;
+import com.sen.bluetooth.listeners.OnClickListener;
 import com.sen.bluetooth.listeners.OnConnectStateListener;
 import com.sen.bluetooth.listeners.OnDevicesItemClickListener;
 import com.sen.bluetooth.listeners.OnScanListener;
@@ -36,6 +40,12 @@ public class DeviceListFragment extends Fragment {
     private DeviceListAdapter deviceListAdapter;
     private OnDevicesItemClickListener onDevicesItemClickListener;
     private ImageButton scanFreshIbtn;
+    private OnClickListener onClickListener;
+
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
+    }
+
     private OnDevicesItemClickListener mOnDevicesItemClickListener = new OnDevicesItemClickListener() {
         @Override
         public void onItemClick(FoundDevice foundDevice) {
@@ -68,11 +78,24 @@ public class DeviceListFragment extends Fragment {
         recyclerView.setAdapter(deviceListAdapter);
         baseBluetoothManager.registerScanListener(onScanListener);
         deviceListAdapter.setmOnDevicesItemClickListener(mOnDevicesItemClickListener);
+
         scanFreshIbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                deviceListAdapter.clear();
                 BluetoothUtil.openBluetooth();
-                BluetoothUtil.startScanl();
+                if (onClickListener != null) {
+                    onClickListener.onClick();
+                }
+                if (baseBluetoothManager instanceof BluetoothBleClient) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        Dbug.i(tag,"start ble scan");
+                        ((BluetoothBleClient) baseBluetoothManager).startBleScan();
+                    }
+                } else {
+                    Dbug.i(tag,"start bluetooth 2.0 scan");
+                    BluetoothUtil.startScanl();
+                }
             }
         });
         return view;
@@ -93,6 +116,14 @@ public class DeviceListFragment extends Fragment {
         @Override
         public void deviceFound(FoundDevice device) {
             Dbug.i(tag, "deviceFound->" + device.getBluetoothDevice().getName());
+            Dbug.i(tag, BluetoothUtil.getDeviceType(device.getBluetoothDevice().getBluetoothClass()));
+            Dbug.i(tag, BluetoothUtil.getMajorDeviceType(device.getBluetoothDevice().getBluetoothClass()));
+            if(baseBluetoothManager instanceof  BluetoothBleClient&&device.getBluetoothDevice().getName().startsWith("HB"))
+            {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    ((BluetoothBleClient)baseBluetoothManager).stopBleScan();
+                }
+            }
             deviceListAdapter.add(device);
 
         }
@@ -137,4 +168,9 @@ public class DeviceListFragment extends Fragment {
         }
     };
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        baseBluetoothManager.unregisterScanListener(onScanListener);
+    }
 }

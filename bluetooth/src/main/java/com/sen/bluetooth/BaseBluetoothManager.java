@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.text.TextUtils;
 
 import com.sen.bluetooth.javabeans.FoundDevice;
 import com.sen.bluetooth.listeners.OnBondStateChangeListener;
@@ -29,7 +30,7 @@ import java.util.UUID;
  * 功能：用一句话描述
  */
 
-public  class BaseBluetoothManager implements Listeners {
+public class BaseBluetoothManager implements Listeners {
     private BluetoothBroatcatReceiver bluetoothBroatcatReceiver;
     private Context mContext;
     private List<OnStateChangeListener> onStateChangeListenerList;
@@ -38,7 +39,15 @@ public  class BaseBluetoothManager implements Listeners {
     private List<OnBondStateChangeListener> bondStateChangeListenerList;
     protected BluetoothAdapter bluetoothAdapter;
     protected BluetoothDevice mBluetoothDevice;
+    private String prefix = "";
 
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
 
     public BluetoothBroatcatReceiver getBluetoothBroatcatReceiver() {
         return bluetoothBroatcatReceiver;
@@ -61,7 +70,6 @@ public  class BaseBluetoothManager implements Listeners {
         bluetoothBroatcatReceiver.setOnConnectStateListener(onConnectStateListener);
         bluetoothBroatcatReceiver.setOnBondStateChangeListener(onBondStateChangeListener);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
     }
 
 
@@ -155,14 +163,12 @@ public  class BaseBluetoothManager implements Listeners {
     }
 
     @Override
-    public  void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
+    public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
     }
 
     @Override
     public void unregisterDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
     }
-
-
 
 
     private OnStateChangeListener onStateChangeListener = new OnStateChangeListener() {
@@ -212,8 +218,10 @@ public  class BaseBluetoothManager implements Listeners {
 
         @Override
         public void deviceFound(FoundDevice device) {
-            for (OnScanListener onScanListener : onScanListenerList) {
-                onScanListener.deviceFound(device);
+            if (!TextUtils.isEmpty(device.getBluetoothDevice().getName()) && device.getBluetoothDevice().getName().startsWith(getPrefix())) {
+                for (OnScanListener onScanListener : onScanListenerList) {
+                    onScanListener.deviceFound(device);
+                }
             }
         }
     };
