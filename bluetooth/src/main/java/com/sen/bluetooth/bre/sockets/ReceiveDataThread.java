@@ -1,9 +1,10 @@
-package com.sen.bluetooth.sockets;
+package com.sen.bluetooth.bre.sockets;
+
+import android.bluetooth.BluetoothDevice;
 
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Created by 陈森华 on 2017/8/24.
@@ -14,6 +15,11 @@ import java.io.OutputStream;
     private boolean isActive = false;
     private InputStream inputStream = null;
     private OnDataReceiverListener onDataReceiverListener;
+    private BluetoothDevice mBluetoothDevice;
+
+    public void setBluetoothDevice(BluetoothDevice mBluetoothDevice) {
+        this.mBluetoothDevice = mBluetoothDevice;
+    }
 
     public void setOnDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
         this.onDataReceiverListener = onDataReceiverListener;
@@ -38,7 +44,7 @@ import java.io.OutputStream;
                     byte[] result = new byte[len];
                     System.arraycopy(buffer, 0, result, 0, len);
                     if (onDataReceiverListener != null)
-                        onDataReceiverListener.onReceiver("",result);
+                        onDataReceiverListener.onReceiver(mBluetoothDevice,result);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

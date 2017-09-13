@@ -10,7 +10,7 @@ import com.sen.bluetooth.javabeans.FoundDevice;
  */
 
 public interface OnScanListener {
-    void startScan();
-    void finishScan();
+  /*  void startScan();
+    void finishScan();*/
     void deviceFound(FoundDevice device);
 }

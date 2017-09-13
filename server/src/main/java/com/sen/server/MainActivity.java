@@ -3,12 +3,11 @@ package com.sen.server;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.sen.bluetooth.BluetoothServer;
+import com.sen.bluetooth.bre.BluetoothServer;
 import com.sen.bluetooth.Constants;
 import com.sen.bluetooth.Error;
 import com.sen.bluetooth.callbacks.SendResponse;
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
-import com.sen.bluetooth.utils.CHexConver;
 import com.sen.bluetooth.utils.Dbug;
 
 public class MainActivity extends AppCompatActivity {

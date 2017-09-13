@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import com.sen.bluetooth.BaseBluetoothManager;
+import com.sen.bluetooth.Error;
 import com.sen.bluetooth.R;
 import com.sen.bluetooth.ble.BluetoothBleClient;
 import com.sen.bluetooth.javabeans.FoundDevice;
@@ -87,22 +88,14 @@ public class DeviceListFragment extends Fragment {
                 if (onClickListener != null) {
                     onClickListener.onClick();
                 }
-                if (baseBluetoothManager instanceof BluetoothBleClient) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                        Dbug.i(tag,"start ble scan");
-                        ((BluetoothBleClient) baseBluetoothManager).startBleScan();
-                    }
-                } else {
-                    Dbug.i(tag,"start bluetooth 2.0 scan");
-                    BluetoothUtil.startScanl();
-                }
+                baseBluetoothManager.startBreBleScan();
             }
         });
         return view;
     }
 
     private OnScanListener onScanListener = new OnScanListener() {
-        @Override
+   /*     @Override
         public void startScan() {
             Dbug.i(tag, "startScan");
             deviceListAdapter.clear();
@@ -111,19 +104,19 @@ public class DeviceListFragment extends Fragment {
         @Override
         public void finishScan() {
             Dbug.i(tag, "finishScan");
-        }
+        }*/
 
         @Override
         public void deviceFound(FoundDevice device) {
             Dbug.i(tag, "deviceFound->" + device.getBluetoothDevice().getName());
             Dbug.i(tag, BluetoothUtil.getDeviceType(device.getBluetoothDevice().getBluetoothClass()));
             Dbug.i(tag, BluetoothUtil.getMajorDeviceType(device.getBluetoothDevice().getBluetoothClass()));
-            if(baseBluetoothManager instanceof  BluetoothBleClient&&device.getBluetoothDevice().getName().startsWith("HB"))
+           /* if(baseBluetoothManager instanceof  BluetoothBleClient&&device.getBluetoothDevice().getName().startsWith("HB"))
             {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    ((BluetoothBleClient)baseBluetoothManager).stopBleScan();
+                    ((BluetoothBleClient)baseBluetoothManager).stopBreBleScan();
                 }
-            }
+            }*/
             deviceListAdapter.add(device);
 
         }
@@ -148,22 +141,22 @@ public class DeviceListFragment extends Fragment {
 
     private OnConnectStateListener onConnectStateListener = new OnConnectStateListener() {
         @Override
-        public void connecting(BluetoothDevice bluetoothDevice) {
+        public void connecting(BluetoothDevice bluetoothDevice, Error error) {
 
         }
 
         @Override
-        public void connected(BluetoothDevice bluetoothDevice) {
+        public void connected(BluetoothDevice bluetoothDevice, Error error) {
 
         }
 
         @Override
-        public void disconnecting(BluetoothDevice bluetoothDevice) {
+        public void disconnecting(BluetoothDevice bluetoothDevice, Error error) {
 
         }
 
         @Override
-        public void disconnected(BluetoothDevice bluetoothDevice) {
+        public void disconnected(BluetoothDevice bluetoothDevice, Error error) {
 
         }
     };

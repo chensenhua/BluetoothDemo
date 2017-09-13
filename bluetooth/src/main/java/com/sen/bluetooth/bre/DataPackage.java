@@ -1,4 +1,4 @@
-package com.sen.bluetooth.javabeans;
+package com.sen.bluetooth.bre;
 
 import com.sen.bluetooth.callbacks.SendResponse;
 

@@ -4,42 +4,43 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.text.TextUtils;
 
+import com.sen.bluetooth.callbacks.SendResponse;
+import com.sen.bluetooth.interfaces.Listeners;
 import com.sen.bluetooth.javabeans.FoundDevice;
 import com.sen.bluetooth.listeners.OnBondStateChangeListener;
 import com.sen.bluetooth.listeners.OnConnectStateListener;
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
 import com.sen.bluetooth.listeners.OnScanListener;
 import com.sen.bluetooth.listeners.OnStateChangeListener;
-import com.sen.bluetooth.interfaces.Listeners;
-import com.sen.bluetooth.sockets.ClientSocket;
-import com.sen.bluetooth.sockets.ServerSocket;
+import com.sen.bluetooth.utils.BluetoothUtil;
+import com.sen.bluetooth.utils.Dbug;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by 陈森华 on 2017/8/22.
  * 功能：用一句话描述
  */
 
-public class BaseBluetoothManager implements Listeners {
+public abstract class BaseBluetoothManager implements Listeners {
+    public static final int SEND_REPEAT_TIMES = 5;
+    private String tag = getClass().getSimpleName();
     private BluetoothBroatcatReceiver bluetoothBroatcatReceiver;
     private Context mContext;
     private List<OnStateChangeListener> onStateChangeListenerList;
     protected List<OnScanListener> onScanListenerList;
     private List<OnConnectStateListener> connectStateListenerList;
     private List<OnBondStateChangeListener> bondStateChangeListenerList;
+    private List<OnDataReceiverListener> onDataReceiverListenerList;
     protected BluetoothAdapter bluetoothAdapter;
-    protected BluetoothDevice mBluetoothDevice;
     private String prefix = "";
+
 
     public void setPrefix(String prefix) {
         this.prefix = prefix;
@@ -59,12 +60,14 @@ public class BaseBluetoothManager implements Listeners {
         registerBroatcast();
     }
 
+
     private void init() {
         bluetoothBroatcatReceiver = new BluetoothBroatcatReceiver();
         onStateChangeListenerList = new ArrayList<>();
         onScanListenerList = new ArrayList<>();
         connectStateListenerList = new ArrayList<>();
         bondStateChangeListenerList = new ArrayList<>();
+        onDataReceiverListenerList = new ArrayList<>();
         bluetoothBroatcatReceiver.setOnStateChangeListener(onStateChangeListener);
         bluetoothBroatcatReceiver.setOnScanListener(onScanListener);
         bluetoothBroatcatReceiver.setOnConnectStateListener(onConnectStateListener);
@@ -72,6 +75,23 @@ public class BaseBluetoothManager implements Listeners {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
+    public void stopScan() {
+    }
+
+
+    public void startScan() {
+    }
+
+
+    public void startBreBleScan() {
+        startScan();
+        BluetoothUtil.startBreScanl();
+    }
+
+    public void stopBreBleScan() {
+        stopScan();
+        BluetoothUtil.stopBreScan();
+    }
 
     private void registerBroatcast() {
         IntentFilter intentFilter = new IntentFilter();
@@ -107,7 +127,6 @@ public class BaseBluetoothManager implements Listeners {
         intentFilter.addAction(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
         intentFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
 
-
         mContext.registerReceiver(bluetoothBroatcatReceiver, intentFilter);
     }
 
@@ -115,12 +134,56 @@ public class BaseBluetoothManager implements Listeners {
         mContext.unregisterReceiver(bluetoothBroatcatReceiver);
     }
 
+    protected synchronized void handleConneted(BluetoothDevice bluetoothDevice, Error error) {
+        Dbug.e(tag, "--------------------onConnectStateListener----------------handleConneted------");
+        for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
+            onConnectStateListener.connected(bluetoothDevice, error);
+        }
+    }
+
+    protected synchronized void handleConneting(BluetoothDevice bluetoothDevice, Error error) {
+        Dbug.e(tag, "--------------------onConnectStateListener----------------handleConneting------");
+        for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
+            onConnectStateListener.connecting(bluetoothDevice, error);
+        }
+    }
+
+    protected synchronized void handleDisconneted(BluetoothDevice bluetoothDevice, Error error) {
+        Dbug.e(tag, "--------------------onConnectStateListener----------------disconnected------");
+        for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
+            onConnectStateListener.disconnected(bluetoothDevice, error);
+        }
+    }
+
+
+    protected synchronized void handleDisconneting(BluetoothDevice bluetoothDevice, Error error) {
+        Dbug.e(tag, "--------------------onConnectStateListener----------------handleDisconneting------");
+        for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
+            onConnectStateListener.disconnecting(bluetoothDevice, error);
+        }
+    }
+
+
+    protected synchronized void handleDeviceFound(FoundDevice device) {
+        if (!TextUtils.isEmpty(device.getBluetoothDevice().getName()) && device.getBluetoothDevice().getName().startsWith(getPrefix())) {
+            for (OnScanListener onScanListener : onScanListenerList) {
+                onScanListener.deviceFound(device);
+            }
+        }
+    }
+
+    public void handleDataReceive(BluetoothDevice bluetoothDevice, byte[] data) {
+        for (OnDataReceiverListener onDataReceiverListener : onDataReceiverListenerList) {
+            onDataReceiverListener.onReceiver(bluetoothDevice, data);
+        }
+    }
+
+
     public void release() {
         unregisterBroatcast();
         mContext = null;
         bluetoothBroatcatReceiver = null;
     }
-
 
     @Override
     public void registerStateChangeListener(OnStateChangeListener onStateChangeListener) {
@@ -139,7 +202,7 @@ public class BaseBluetoothManager implements Listeners {
 
     @Override
     public void unregisterScanListener(OnScanListener onScanListener) {
-        onScanListener.finishScan();
+        onScanListenerList.remove(onScanListener);
     }
 
     @Override
@@ -164,12 +227,14 @@ public class BaseBluetoothManager implements Listeners {
 
     @Override
     public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
+        onDataReceiverListenerList.add(onDataReceiverListener);
     }
+
 
     @Override
     public void unregisterDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
+        onDataReceiverListenerList.remove(onDataReceiverListener);
     }
-
 
     private OnStateChangeListener onStateChangeListener = new OnStateChangeListener() {
         @Override
@@ -200,58 +265,42 @@ public class BaseBluetoothManager implements Listeners {
             }
         }
     };
-
     private OnScanListener onScanListener = new OnScanListener() {
-        @Override
+    /*    @Override
         public void startScan() {
-            for (OnScanListener onScanListener : onScanListenerList) {
-                onScanListener.startScan();
-            }
+            handleStartScan();
         }
 
         @Override
         public void finishScan() {
-            for (OnScanListener onScanListener : onScanListenerList) {
-                onScanListener.finishScan();
-            }
-        }
+            handleStopScan();
+        }*/
 
         @Override
         public void deviceFound(FoundDevice device) {
-            if (!TextUtils.isEmpty(device.getBluetoothDevice().getName()) && device.getBluetoothDevice().getName().startsWith(getPrefix())) {
-                for (OnScanListener onScanListener : onScanListenerList) {
-                    onScanListener.deviceFound(device);
-                }
-            }
+            handleDeviceFound(device);
         }
     };
+
     private OnConnectStateListener onConnectStateListener = new OnConnectStateListener() {
         @Override
-        public void connecting(BluetoothDevice bluetoothDevice) {
-            for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
-                onConnectStateListener.connecting(bluetoothDevice);
-            }
+        public void connecting(BluetoothDevice bluetoothDevice, Error error) {
+            handleConneting(bluetoothDevice, error);
         }
 
         @Override
-        public void connected(BluetoothDevice bluetoothDevice) {
-            for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
-                onConnectStateListener.connected(bluetoothDevice);
-            }
+        public void connected(BluetoothDevice bluetoothDevice, Error error) {
+            handleConneted(bluetoothDevice, error);
         }
 
         @Override
-        public void disconnecting(BluetoothDevice bluetoothDevice) {
-            for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
-                onConnectStateListener.disconnecting(bluetoothDevice);
-            }
+        public void disconnecting(BluetoothDevice bluetoothDevice, Error error) {
+            handleDisconneting(bluetoothDevice, error);
         }
 
         @Override
-        public void disconnected(BluetoothDevice bluetoothDevice) {
-            for (OnConnectStateListener onConnectStateListener : connectStateListenerList) {
-                onConnectStateListener.disconnected(bluetoothDevice);
-            }
+        public void disconnected(BluetoothDevice bluetoothDevice, Error error) {
+            handleDisconneted(bluetoothDevice, error);
         }
     };
 
@@ -277,4 +326,6 @@ public class BaseBluetoothManager implements Listeners {
             }
         }
     };
+
+
 }

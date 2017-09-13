@@ -86,19 +86,19 @@ public class BluetoothBroatcatReceiver extends BroadcastReceiver {
     }
 
     /**
-     * 蓝牙扫描回调
+     * 蓝牙连接回调
      *
      * @param intent
      */
     private void handleScanAction(Intent intent) {
         if (intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-            if (onScanListener != null) {
+          /*  if (onScanListener != null) {
                 onScanListener.finishScan();
-            }
+            }*/
         } else if (intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
-            if (onScanListener != null) {
+         /*   if (onScanListener != null) {
                 onScanListener.startScan();
-            }
+            }*/
         } else if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
             BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             BluetoothClass bluetoothClass = intent.getParcelableExtra(BluetoothDevice.EXTRA_CLASS);
@@ -127,22 +127,22 @@ public class BluetoothBroatcatReceiver extends BroadcastReceiver {
         switch (state) {
             case BluetoothAdapter.STATE_CONNECTING:
                 if (onConnectStateListener != null) {
-                    onConnectStateListener.connecting(bluetoothDevice);
+                    onConnectStateListener.connecting(bluetoothDevice,Error.CONNECTED_OK);
                 }
                 break;
             case BluetoothAdapter.STATE_CONNECTED:
                 if (onConnectStateListener != null) {
-                    onConnectStateListener.connected(bluetoothDevice);
+                    onConnectStateListener.connected(bluetoothDevice,Error.CONNECTED_OK);
                 }
                 break;
             case BluetoothAdapter.STATE_DISCONNECTING:
                 if (onConnectStateListener != null) {
-                    onConnectStateListener.disconnecting(bluetoothDevice);
+                    onConnectStateListener.disconnecting(bluetoothDevice,Error.CONNECTED_OK);
                 }
                 break;
             case BluetoothAdapter.STATE_DISCONNECTED:
                 if (onConnectStateListener != null) {
-                    onConnectStateListener.disconnected(bluetoothDevice);
+                    onConnectStateListener.disconnected(bluetoothDevice,Error.CONNECTED_OK);
                 }
                 break;
         }

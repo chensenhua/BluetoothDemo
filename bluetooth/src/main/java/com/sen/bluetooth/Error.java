@@ -1,7 +1,5 @@
 package com.sen.bluetooth;
 
-import static android.bluetooth.le.ScanCallback.SCAN_FAILED_INTERNAL_ERROR;
-
 /**
  * Created by 陈森华 on 2017/8/23.
  * 功能：用一句话描述
@@ -10,7 +8,12 @@ import static android.bluetooth.le.ScanCallback.SCAN_FAILED_INTERNAL_ERROR;
 public enum Error {
     BLE_SCAN_FAILED,
     DATA_SEND_SUCCESS,
-    DATA_SEND_FAIL;
+    DATA_SEND_FAILED,
+
+    //连接
+    CONNECTED_FAILED,
+    CONNECTED_OK;
+
 
     public static String getErrorDesc(Error value) {
          String desc="unknow";
@@ -22,7 +25,7 @@ public enum Error {
             case DATA_SEND_SUCCESS:
                 desc="发送成功";
                 break;
-            case DATA_SEND_FAIL:
+            case DATA_SEND_FAILED:
                 desc = "发送失败";
                 break;
         }

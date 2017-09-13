@@ -69,7 +69,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         String name = bluetoothDevice.getName();
         if (!TextUtils.isEmpty(name)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                viewholder.nameTv.setText(name + "        " + BluetoothUtil.getType(bluetoothDevice));
+                viewholder.nameTv.setText(name +"  "+ bluetoothDevice.getAddress()+"        " + BluetoothUtil.getType(bluetoothDevice));
             } else {
                 viewholder.nameTv.setText(name);
             }

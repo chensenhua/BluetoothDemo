@@ -1,14 +1,15 @@
-package com.sen.bluetooth;
+package com.sen.bluetooth.bre;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 
 import com.sen.bluetooth.BaseBluetoothManager;
+import com.sen.bluetooth.bre.sockets.ClientSocket;
 import com.sen.bluetooth.callbacks.SendResponse;
-import com.sen.bluetooth.javabeans.DataPackage;
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
-import com.sen.bluetooth.sockets.ClientSocket;
+
+import com.sen.bluetooth.utils.BluetoothUtil;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -22,6 +23,15 @@ public class BluetoothClient extends BaseBluetoothManager {
     private static BluetoothClient mInstance;
     private String tag = getClass().getSimpleName();
     private ClientSocket mClientSocket;
+    private BluetoothDevice mBluetoothDevice;
+    private OnDataReceiverListener onDataReceiverListener = new OnDataReceiverListener() {
+        @Override
+        public void onReceiver(BluetoothDevice bluetoothDevice, byte[] data) {
+            handleDataReceive(bluetoothDevice, data);
+        }
+
+    };
+
 
     private BluetoothClient(Context context) {
         super(context);
@@ -35,13 +45,23 @@ public class BluetoothClient extends BaseBluetoothManager {
     }
 
     @Override
-    public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        mClientSocket.registerDataReceiverListener(onDataReceiverListener);
+    public void stopScan() {
+        super.stopScan();
+        BluetoothUtil.stopBreScan();
     }
 
     @Override
-    public void unregisterDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        mClientSocket.unregisterDataReceiverListener(onDataReceiverListener);
+    public void startScan() {
+        super.startScan();
+        BluetoothUtil.startBreScanl();
+    }
+
+
+    public void sendData(byte[] data, SendResponse sendResponse, int repeat) {
+        DataPackage dataPackage = new DataPackage();
+        dataPackage.setData(data);
+        dataPackage.setSendResponse(sendResponse);
+        mClientSocket.sendData(dataPackage);
     }
 
 
@@ -52,6 +72,7 @@ public class BluetoothClient extends BaseBluetoothManager {
             if (bluetoothSocket != null) {
                 bluetoothSocket.connect();
                 mClientSocket = new ClientSocket(bluetoothSocket);
+                mClientSocket.setOnDataReceiverListener(onDataReceiverListener);
                 return true;
             } else {
                 throw new IOException("bluetoothSocket is null");
@@ -62,10 +83,5 @@ public class BluetoothClient extends BaseBluetoothManager {
         return false;
     }
 
-    public void sendData(byte[] data, SendResponse sendResponse) {
-        DataPackage dataPackage = new DataPackage();
-        dataPackage.setData(data);
-        dataPackage.setSendResponse(sendResponse);
-        mClientSocket.sendData(dataPackage);
-    }
+
 }

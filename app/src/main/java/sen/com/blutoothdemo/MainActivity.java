@@ -1,16 +1,15 @@
 package sen.com.blutoothdemo;
 
 import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.FrameLayout;
 
-import com.sen.bluetooth.BluetoothClient;
+import com.sen.bluetooth.bre.BluetoothClient;
+import com.sen.bluetooth.Constants;
 import com.sen.bluetooth.javabeans.FoundDevice;
 import com.sen.bluetooth.listeners.OnDevicesItemClickListener;
 import com.sen.bluetooth.ui.fragments.DeviceListFragment;
@@ -36,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(FoundDevice foundDevice) {
                 Dbug.i(tag,foundDevice.toString());
+             bluetoothClient.createSocketClient(foundDevice.getBluetoothDevice(), Constants.MY_UUID);
             }
         });
         fragmentTransaction.replace(R.id.container,deviceListFragment, deviceListFragment.getClass().getSimpleName());

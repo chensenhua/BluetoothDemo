@@ -1,9 +1,8 @@
-package com.sen.bluetooth.sockets;
+package com.sen.bluetooth.bre.sockets;
 
 import android.bluetooth.BluetoothSocket;
 
-import com.sen.bluetooth.interfaces.Listeners;
-import com.sen.bluetooth.javabeans.DataPackage;
+import com.sen.bluetooth.bre.DataPackage;
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
 
 import java.io.IOException;
@@ -29,22 +28,10 @@ public class ClientSocket {
     private ReceiveDataThread receiveDataThread;
     private SendDataThread sendDataThread;
     private List<OnDataReceiverListener> onDataReceiverListenerList;
-    private OnDataReceiverListener onDataReceiverListener = new OnDataReceiverListener() {
-        @Override
-        public void onReceiver(String name, byte[] data) {
-            for (OnDataReceiverListener onDataReceiverListener : onDataReceiverListenerList) {
-                onDataReceiverListener.onReceiver(bluetoothSocket.getRemoteDevice().getName(), data);
-            }
-        }
-    };
+    private OnDataReceiverListener onDataReceiverListener;
 
-
-    public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        onDataReceiverListenerList.add(onDataReceiverListener);
-    }
-
-    public void unregisterDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        onDataReceiverListenerList.remove(onDataReceiverListener);
+    public void setOnDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
+        this.onDataReceiverListener = onDataReceiverListener;
     }
 
     public ClientSocket(BluetoothSocket bluetoothSocket) {
@@ -59,6 +46,7 @@ public class ClientSocket {
             outputStream = bluetoothSocket.getOutputStream();
             sendDataThread = new SendDataThread(outputStream);
             receiveDataThread = new ReceiveDataThread(inputStream);
+            receiveDataThread.setBluetoothDevice(bluetoothSocket.getRemoteDevice());
             receiveDataThread.setOnDataReceiverListener(onDataReceiverListener);
             sendDataThread.start();
             receiveDataThread.start();

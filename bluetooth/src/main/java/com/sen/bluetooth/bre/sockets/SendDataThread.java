@@ -1,12 +1,11 @@
-package com.sen.bluetooth.sockets;
+package com.sen.bluetooth.bre.sockets;
 
 import com.sen.bluetooth.Error;
-import com.sen.bluetooth.javabeans.DataPackage;
+import com.sen.bluetooth.bre.DataPackage;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -46,7 +45,7 @@ import java.util.concurrent.LinkedBlockingQueue;
             isActive = false;
         } catch (IOException e) {
             e.printStackTrace();
-            queue.poll().getSendResponse().onRespond(Error.DATA_SEND_FAIL);
+            queue.poll().getSendResponse().onRespond(Error.DATA_SEND_FAILED);
         }
     }
 

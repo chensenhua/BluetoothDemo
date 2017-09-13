@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.os.Build;
@@ -57,16 +58,16 @@ public class BluetoothUtil {
     /**
      * 蓝牙扫描2.0设备
      */
-    public static void startScanl() {
+    public static void startBreScanl() {
         bluetoothAdapter.startDiscovery();
     }
 
     /**
-     * 停止扫描
+     * 停止扫描2.0设备
      *
      * @return
      */
-    public static boolean cancleScan() {
+    public static boolean stopBreScan() {
         return bluetoothAdapter.cancelDiscovery();
     }
 
@@ -386,5 +387,32 @@ public class BluetoothUtil {
         return BluetoothAdapter.getDefaultAdapter().getProfileConnectionState(profile);
     }
 
+    /**
+     * 获取蓝牙服务管理器
+     * @param context
+     * @return
+     */
+    public static BluetoothManager getBluetoothManager(Context context)
+    {
+        return (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+    }
 
+
+    /**
+     * 双模蓝牙的地址转换：蓝牙4.0和经典蓝牙的地址转换
+     * @param address
+     * @return
+     */
+    public String exchangeBluetoothAddress( String address ){
+        String exchanged = "";
+
+        String[] temp = address.split(":");
+        for(int i=temp.length; 0<i; i--){
+            exchanged += temp[i-1];
+            if( i!=1){
+                exchanged += ":";
+            }
+        }
+        return exchanged;
+    }
 }

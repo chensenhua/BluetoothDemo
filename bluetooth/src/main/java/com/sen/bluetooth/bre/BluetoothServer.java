@@ -1,16 +1,19 @@
-package com.sen.bluetooth;
+package com.sen.bluetooth.bre;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.content.Context;
 
+import com.sen.bluetooth.BaseBluetoothManager;
+import com.sen.bluetooth.bre.sockets.ClientSocket;
+import com.sen.bluetooth.bre.sockets.ServerSocket;
 import com.sen.bluetooth.callbacks.SendResponse;
-import com.sen.bluetooth.javabeans.DataPackage;
 import com.sen.bluetooth.listeners.OnDataReceiverListener;
-import com.sen.bluetooth.sockets.ClientSocket;
-import com.sen.bluetooth.sockets.ServerSocket;
+
 import com.sen.bluetooth.utils.Dbug;
 
 import java.io.IOException;
+
 import java.util.UUID;
 
 /**
@@ -25,22 +28,19 @@ public class BluetoothServer extends BaseBluetoothManager {
     public BluetoothServer(Context context) {
         super(context);
     }
-
-    @Override
-    public void registerDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        mServerSocket.registerDataReceiverListener(onDataReceiverListener);
-    }
-
-    @Override
-    public void unregisterDataReceiverListener(OnDataReceiverListener onDataReceiverListener) {
-        mServerSocket.unregisterDataReceiverListener(onDataReceiverListener);
-    }
+    private OnDataReceiverListener onDataReceiverListener=new OnDataReceiverListener() {
+        @Override
+        public synchronized void onReceiver(BluetoothDevice bluetoothDevice, byte[] data) {
+         handleDataReceive(bluetoothDevice,data);
+        }
+    };
 
     public boolean createSocketServer(String name, String uuid) {
         try {
             BluetoothServerSocket bluetoothServerSocket = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(name, UUID.fromString(uuid));
             if (bluetoothServerSocket != null) {
                 mServerSocket = new ServerSocket(bluetoothServerSocket);
+                mServerSocket.setOnDataReceiverListener(onDataReceiverListener);
                 mServerSocket.start();
                 Dbug.i(tag, "bluetoothServerSocket create success");
                 return true;
